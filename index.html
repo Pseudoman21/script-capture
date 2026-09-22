@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Script Capture</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<video id="preview" playsinline autoplay muted></video>
+
+<!-- camera permission / error screen -->
+<div id="gate" class="gate" hidden>
+  <div class="gate-card">
+    <h1 id="gate-title">Camera access needed</h1>
+    <p id="gate-msg">Allow camera and microphone access to start recording.</p>
+    <button id="gate-retry" class="btn btn-primary">Enable camera</button>
+  </div>
+</div>
+
+<!-- top bar -->
+<header id="topbar" class="chrome">
+  <div class="brand">
+    <span class="dot" id="statusDot"></span>
+    <span id="statusText">Ready</span>
+  </div>
+  <div class="top-actions">
+    <button id="takesBtn" class="btn btn-ghost" hidden>Takes <span id="takesCount">0</span></button>
+    <button id="scriptToggle" class="btn btn-ghost" title="Hide script (H)">Hide script</button>
+    <button id="settingsBtn" class="btn btn-ghost" title="Settings">Settings</button>
+  </div>
+</header>
+
+<!-- teleprompter panel -->
+<section id="prompter" aria-label="Teleprompter">
+  <div id="prompterBar" class="prompter-bar">
+    <span class="grip" aria-hidden="true"></span>
+    <div class="bar-actions">
+      <button id="scrollBtn" class="mini" title="Start / pause scroll (Space)">Scroll</button>
+      <button id="rewindBtn" class="mini" title="Back to top">Top</button>
+      <button id="editBtn" class="mini" title="Edit script (E)">Edit</button>
+    </div>
+  </div>
+  <div id="prompterBody" class="prompter-body">
+    <div id="scriptView" class="script-view"></div>
+    <textarea id="scriptEdit" class="script-edit" spellcheck="false" placeholder="Type or paste your script…" hidden></textarea>
+    <div id="guide" class="read-guide" aria-hidden="true"></div>
+  </div>
+  <div id="resizeHandle" class="resize-handle" title="Resize"></div>
+</section>
+
+<!-- bottom dock -->
+<footer id="dock" class="chrome">
+  <div class="dock-left">
+    <span id="timer" class="timer">00:00</span>
+  </div>
+  <div class="dock-center">
+    <button id="recordBtn" class="rec" title="Start / stop recording (R)"><span class="rec-inner"></span></button>
+    <button id="pauseBtn" class="btn btn-ghost" hidden>Pause</button>
+  </div>
+  <div class="dock-right">
+    <label class="slider-inline" title="Scroll speed ([ and ])">
+      <span>Speed</span>
+      <input id="speedQuick" type="range" min="5" max="220" step="1">
+    </label>
+  </div>
+</footer>
+
+<!-- settings drawer -->
+<aside id="drawer" class="drawer" aria-label="Settings">
+  <div class="drawer-head">
+    <h2>Settings</h2>
+    <button id="drawerClose" class="btn btn-ghost">Close</button>
+  </div>
+
+  <div class="group">
+    <h3>Devices</h3>
+    <label class="field"><span>Camera</span><select id="videoSel"></select></label>
+    <label class="field"><span>Microphone</span><select id="audioSel"></select></label>
+    <label class="field"><span>Quality</span>
+      <select id="qualitySel">
+        <option value="720">720p</option>
+        <option value="1080">1080p</option>
+        <option value="1440">1440p</option>
+        <option value="2160">4K</option>
+      </select>
+    </label>
+    <label class="check"><input id="mirrorChk" type="checkbox"><span>Mirror preview (recording stays unmirrored)</span></label>
+  </div>
+
+  <div class="group">
+    <h3>Script</h3>
+    <label class="field"><span>Text size <b id="fsVal"></b></span><input id="fontSize" type="range" min="14" max="80" step="1"></label>
+    <label class="field"><span>Line spacing <b id="lhVal"></b></span><input id="lineHeight" type="range" min="1.1" max="2.4" step="0.05"></label>
+    <label class="field"><span>Scroll speed <b id="spVal"></b></span><input id="speed" type="range" min="5" max="220" step="1"></label>
+    <label class="field"><span>Panel opacity <b id="opVal"></b></span><input id="opacity" type="range" min="0" max="0.95" step="0.05"></label>
+    <label class="field"><span>Align</span>
+      <select id="alignSel">
+        <option value="left">Left</option>
+        <option value="center">Center</option>
+      </select>
+    </label>
+    <label class="check"><input id="guideChk" type="checkbox"><span>Show reading line</span></label>
+    <label class="check"><input id="flipChk" type="checkbox"><span>Flip text (for teleprompter glass)</span></label>
+    <button id="resetPos" class="btn btn-ghost full">Reset panel position &amp; size</button>
+  </div>
+
+  <div class="group">
+    <h3>Recording</h3>
+    <label class="field"><span>Countdown</span>
+      <select id="countdownSel">
+        <option value="0">Off</option>
+        <option value="3">3 seconds</option>
+        <option value="5">5 seconds</option>
+        <option value="10">10 seconds</option>
+      </select>
+    </label>
+    <label class="check"><input id="autoScrollChk" type="checkbox"><span>Start scrolling when recording starts</span></label>
+    <label class="check"><input id="hideChromeChk" type="checkbox"><span>Hide controls while recording</span></label>
+    <p class="hint" id="formatHint"></p>
+  </div>
+
+  <div class="group">
+    <h3>Shortcuts</h3>
+    <ul class="keys">
+      <li><kbd>R</kbd> record / stop</li>
+      <li><kbd>Space</kbd> scroll / pause</li>
+      <li><kbd>[</kbd> <kbd>]</kbd> speed</li>
+      <li><kbd>-</kbd> <kbd>+</kbd> text size</li>
+      <li><kbd>E</kbd> edit script</li>
+      <li><kbd>H</kbd> hide script</li>
+      <li><kbd>U</kbd> hide controls</li>
+      <li><kbd>Esc</kbd> close</li>
+    </ul>
+  </div>
+</aside>
+
+<!-- countdown -->
+<div id="countdown" class="countdown" hidden><span id="countNum">3</span></div>
+
+<!-- takes / review -->
+<div id="review" class="modal" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Takes</h2>
+      <button id="reviewClose" class="btn btn-ghost">Close</button>
+    </div>
+    <video id="reviewVideo" controls playsinline></video>
+    <div class="modal-actions">
+      <button id="downloadBtn" class="btn btn-primary">Download</button>
+      <button id="deleteBtn" class="btn btn-ghost">Delete take</button>
+    </div>
+    <ul id="takesList" class="takes"></ul>
+    <p class="hint">Takes live in this tab only — download the ones you want before closing or reloading.</p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
