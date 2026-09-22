@@ -3,6 +3,8 @@
 A teleprompter you can park anywhere on screen while you record closeup video from your webcam.
 The script overlay lives on top of the camera preview and is **never** part of the recording.
 
+**Live:** https://script-capture.vercel.app — redeploys automatically on every push to `main`.
+
 ## Run it
 
 ```sh
