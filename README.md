@@ -42,6 +42,9 @@ Opening `index.html` directly as a `file://` page will not get camera permission
 
 ## Files
 
-- `index.html` — markup
-- `styles.css` — styling
-- `app.js` — camera, recording, teleprompter, persistence
+- `index.html` — shell that wires up the custom elements below
+- `styles.css` — styling (targets the same ids/classes the components render)
+- `js/store.js` — persisted state + a small event bus for cross-component sync
+- `js/camera.js` / `js/recorder.js` — getUserMedia and MediaRecorder logic
+- `js/app.js` — boots the app and handles keyboard shortcuts
+- `js/components/` — one web component per UI region (top bar, teleprompter panel, dock, settings drawer, camera gate, countdown, takes modal, coffee modal)
